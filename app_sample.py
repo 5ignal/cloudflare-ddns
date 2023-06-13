@@ -35,8 +35,13 @@ class cloudflare_ddns():
             headers=self.headers,
         )
         data = json.loads(response.text)
-        a_record = [record['id'] for record in data['result'] if record['type'] == 'A']
-        return ''.join(a_record)
+
+        wantName = "%s.%s"%(self.sub_domain, self.domain)
+        for record in data['result']:
+            if[record['type'] == 'A' and record['name'] == wantName]:
+                return ''.join(record['id'])
+        print("Can't find Domain")
+        return -1
 
 
     def record_update(self):
