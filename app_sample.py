@@ -2,8 +2,9 @@ import requests
 import json
 
 class cloudflare_ddns():
-    def __init__(self, domain, token):
+    def __init__(self, token, domain, sub_domain):
         self.domain = domain
+        self.sub_domain = sub_domain
         self.token = token
         self.headers = {
         'Authorization': f'Bearer {self.token}',
@@ -34,16 +35,19 @@ class cloudflare_ddns():
             headers=self.headers,
         )
         data = json.loads(response.text)
-        a_record = [record['id'] for record in data["result"] if record["type"] == "A"]
+        a_record = [record['id'] for record in data['result'] if record['type'] == 'A']
         return ''.join(a_record)
 
 
     def record_update(self):
         payload = {
             'type': 'A',
-            'name': self.domain,
             'content': self.get_ip()
         }
+        if self.sub_domain == "":
+            payload['name'] = self.domain
+        else:
+            payload['name'] = self.sub_domain
         response = requests.put(
             f'{self.cloudflare_api}/{self.zone_id}/dns_records/{self.get_record_id()}',
             headers=self.headers,
@@ -58,11 +62,15 @@ class cloudflare_ddns():
 
 
 if __name__ == "__main__":
-    # Cloudflare Domain
-    cloudflare_domain = "YOUR.DOMAIN"
+    # Domain
+    cloudflare_domain = "DOMAIN"
+
+    # Sub Domain
+    # If you want to apply it to A record, leave it blank
+    cloudflare_sub_domain = "SUB_DOMAIN"
 
     # Cloudflare API token
     # https://dash.cloudflare.com/profile/api-tokens
     cloudflare_api_token = "API_TOKEN"
 
-    cloudflare_ddns(cloudflare_domain, cloudflare_api_token)
+    cloudflare_ddns(cloudflare_api_token, cloudflare_domain, cloudflare_sub_domain)
