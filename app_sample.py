@@ -71,7 +71,7 @@ if __name__ == "__main__":
     cloudflare_domain = "DOMAIN"
 
     # Sub Domain
-    # If you want to apply it to A record, leave it blank
+    # If you want it to apply to root domain, leave it blank
     cloudflare_sub_domain = "SUB_DOMAIN"
 
     # Cloudflare API token
