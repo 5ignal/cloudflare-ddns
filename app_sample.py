@@ -1,81 +1,78 @@
 import requests
 import json
 
-class cloudflare_ddns():
-    def __init__(self, token, domain, sub_domain):
+class cloudflare:
+    def __init__(self, api_token, domain, record_name):
+        self.api_endpoint = "https://api.cloudflare.com/client/v4/zones"
         self.domain = domain
-        self.sub_domain = sub_domain
-        self.token = token
+        if record_name == "":
+            self.record = domain
+        else:
+            self.record = f"{record_name}.{domain}"
         self.headers = {
-        'Authorization': f'Bearer {self.token}',
-        'Content-Type': 'application/json',
+            "Authorization": f"Bearer {api_token}",
+            "Content-Type": "application/json"
         }
-        self.cloudflare_api = 'https://api.cloudflare.com/client/v4/zones'
-        self.get_zone_id()
-        self.record_update()
+    
+    # 현재 IP 주소 가져오기
+    def get_current_ip(self):
+        return requests.get("https://myip.wtf/text").text
 
-
-    def get_ip(self):
-        response = requests.get("https://myip.wtf/text")
-        return response.text
-
-
+    # 도메인 이름을 이용하여 Zone ID 가져오기
     def get_zone_id(self):
-        response = requests.get(
-            f'{self.cloudflare_api}?name={self.domain}',
-            headers=self.headers,
-        )
-        data = json.loads(response.text)
-        self.zone_id = data["result"][0]["id"]
-
-
-    def get_record_id(self):
-        response = requests.get(
-            f'{self.cloudflare_api}/{self.zone_id}/dns_records',
-            headers=self.headers,
-        )
-        data = json.loads(response.text)
-
-        wantName = "%s.%s"%(self.sub_domain, self.domain)
-        for record in data['result']:
-            if[record['type'] == 'A' and record['name'] == wantName]:
-                return ''.join(record['id'])
-        print("Can't find Domain")
-        return -1
-
-
-    def record_update(self):
-        payload = {
-            'type': 'A',
-            'content': self.get_ip()
+        params = {
+            "name": self.domain
         }
-        if self.sub_domain == "":
-            payload['name'] = self.domain
-        else:
-            payload['name'] = self.sub_domain
-        response = requests.put(
-            f'{self.cloudflare_api}/{self.zone_id}/dns_records/{self.get_record_id()}',
-            headers=self.headers,
-            json=payload,
-        )
-        data = json.loads(response.text)
-        if data.get('success') == True:
-            print('DNS Update Success')
-        else:
-            print('DNS Update Failed')
-            print(response.text)
+        response = requests.get(self.api_endpoint, headers=self.headers, params=params)
+        data = json.loads(response.text)["result"]
+        if len(data) > 0:
+            return data[0]["id"]
+        print("Zone ID를 찾을 수 없습니다.")
 
+    # DNS 레코드 조회하기
+    def get_dns_record(self):
+        params = {
+            "type": "A",
+            "name": self.record
+        }
+        response = requests.get(f"{self.api_endpoint}/{self.zone_id}/dns_records", headers=self.headers, params=params)
+        data = json.loads(response.text)["result"]
+        if len(data) > 0:
+            return data[0]
+        print("DNS 레코드를 찾을 수 없습니다.")
+
+    # DNS 레코드 업데이트하기
+    def update_dns_record(self):
+        self.ip = self.get_current_ip()
+        self.zone_id = self.get_zone_id()
+        if self.zone_id is not None:
+            record = self.get_dns_record()
+            if record is not None:
+                data = {
+                    "type": "A",
+                    "name": self.record,
+                    "content": self.ip
+                }
+                response = requests.put(f"{self.api_endpoint}/{self.zone_id}/dns_records/{record['id']}", headers=self.headers, data=json.dumps(data))
+                result = json.loads(response.text)
+                if result.get('success') == True:
+                    print("DNS 레코드가 업데이트되었습니다.")
+                    return 0
+        print("DNS 레코드 업데이트에 실패했습니다.")
 
 if __name__ == "__main__":
-    # Domain
-    cloudflare_domain = "DOMAIN"
-
-    # Sub Domain
-    # If you want it to apply to root domain, leave it blank
-    cloudflare_sub_domain = "SUB_DOMAIN"
-
-    # Cloudflare API token
+    # Cloudflare API 토큰 
     # https://dash.cloudflare.com/profile/api-tokens
-    cloudflare_api_token = "API_TOKEN"
+    # Zone:DNS:Edit
+    # Global API Key 사용할 수 없음
+    API_TOKEN = ""
 
-    cloudflare_ddns(cloudflare_api_token, cloudflare_domain, cloudflare_sub_domain)
+    # 도메인 이름
+    DOMAIN = "example.com"
+
+    # 서브 도메인 이름 (없으면 빈 문자열)
+    RECORD_NAME = ""
+
+    # Cloudflare 객체 생성
+    cf = cloudflare(API_TOKEN, DOMAIN, RECORD_NAME)
+    cf.update_dns_record()
