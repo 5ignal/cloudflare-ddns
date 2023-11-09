@@ -2,13 +2,14 @@ import requests
 import json
 
 class cloudflare:
-    def __init__(self, api_token, domain, record_name):
+    def __init__(self, api_token, domain, record_name, proxy):
         self.api_endpoint = "https://api.cloudflare.com/client/v4/zones"
         self.domain = domain
         if record_name == "":
             self.record = domain
         else:
             self.record = f"{record_name}.{domain}"
+        self.proxy = proxy
         self.headers = {
             "Authorization": f"Bearer {api_token}",
             "Content-Type": "application/json"
@@ -53,6 +54,8 @@ class cloudflare:
                     "name": self.record,
                     "content": self.ip
                 }
+                if self.proxy:
+                    data["proxied"] = True
                 response = requests.put(f"{self.api_endpoint}/{self.zone_id}/dns_records/{record['id']}", headers=self.headers, data=json.dumps(data))
                 result = json.loads(response.text)
                 if result.get('success') == True:
@@ -73,6 +76,9 @@ if __name__ == "__main__":
     # 서브 도메인 이름 (없으면 빈 문자열)
     RECORD_NAME = ""
 
+    # Cloudflare Proxy 사용 여부
+    PROXY = True
+
     # Cloudflare 객체 생성
-    cf = cloudflare(API_TOKEN, DOMAIN, RECORD_NAME)
+    cf = cloudflare(API_TOKEN, DOMAIN, RECORD_NAME, PROXY)
     cf.update_dns_record()
