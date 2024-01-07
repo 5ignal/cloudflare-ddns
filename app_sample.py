@@ -1,84 +1,66 @@
 import requests
 import json
 
-class cloudflare:
-    def __init__(self, api_token, domain, record_name, proxy):
-        self.api_endpoint = "https://api.cloudflare.com/client/v4/zones"
-        self.domain = domain
-        if record_name == "":
-            self.record = domain
-        else:
-            self.record = f"{record_name}.{domain}"
-        self.proxy = proxy
+class cloudflare_ddns():
+    def __init__(self, domain: str, token: str):
+        self.cloudflare_api = 'https://api.cloudflare.com/client/v4/zones'
         self.headers = {
-            "Authorization": f"Bearer {api_token}",
-            "Content-Type": "application/json"
+        'Authorization': f'Bearer {token}',
+        'Content-Type': 'application/json',
         }
-    
-    # 현재 IP 주소 가져오기
-    def get_current_ip(self):
-        return requests.get("https://myip.wtf/text").text
 
-    # 도메인 이름을 이용하여 Zone ID 가져오기
-    def get_zone_id(self):
-        params = {
-            "name": self.domain
+        ipAddr = self.getIP()
+        splitDomain = domain.split('.')
+        if len(splitDomain) == 2:
+            idZone = self.getIdZone(domain)
+        else:
+            idZone = self.getIdZone(f'{splitDomain[1]}.{splitDomain[2]}')
+        idRecord = self.getIdRecord(idZone, domain)
+        self.update(domain, idZone, idRecord, ipAddr)
+
+    def getIP(self) -> str:
+        res = requests.get("https://myip.wtf/text").text
+        res = res.replace('\n', '')
+        return res
+
+    def getIdZone(self, domain):
+        response = requests.get(
+            f'{self.cloudflare_api}?name={domain}',
+            headers=self.headers,
+        )
+        data = json.loads(response.text)
+        return data["result"][0]["id"]
+
+    def getIdRecord(self, idZone, domain):
+        response = requests.get(
+            f'{self.cloudflare_api}/{idZone}/dns_records?name={domain}',
+            headers=self.headers,
+        )
+        data = json.loads(response.text)
+        if data['result']:
+            return data['result'][0]['id']
+        else:
+            return None
+
+    def update(self, domain, idZone, idRecord, ipAddr):
+        payload = {
+            'type': 'A',
+            'content': ipAddr
         }
-        response = requests.get(self.api_endpoint, headers=self.headers, params=params)
-        data = json.loads(response.text)["result"]
-        if len(data) > 0:
-            return data[0]["id"]
-        print("Zone ID를 찾을 수 없습니다.")
-
-    # DNS 레코드 조회하기
-    def get_dns_record(self):
-        params = {
-            "type": "A",
-            "name": self.record
-        }
-        response = requests.get(f"{self.api_endpoint}/{self.zone_id}/dns_records", headers=self.headers, params=params)
-        data = json.loads(response.text)["result"]
-        if len(data) > 0:
-            return data[0]
-        print("DNS 레코드를 찾을 수 없습니다.")
-
-    # DNS 레코드 업데이트하기
-    def update_dns_record(self):
-        self.ip = self.get_current_ip()
-        self.zone_id = self.get_zone_id()
-        if self.zone_id is not None:
-            record = self.get_dns_record()
-            if record is not None:
-                data = {
-                    "type": "A",
-                    "name": self.record,
-                    "content": self.ip
-                }
-                if self.proxy:
-                    data["proxied"] = True
-                response = requests.put(f"{self.api_endpoint}/{self.zone_id}/dns_records/{record['id']}", headers=self.headers, data=json.dumps(data))
-                result = json.loads(response.text)
-                if result.get('success') == True:
-                    print("DNS 레코드가 업데이트되었습니다.")
-                    return 0
-        print("DNS 레코드 업데이트에 실패했습니다.")
+        payload['name'] = domain
+        response = requests.put(
+            f'{self.cloudflare_api}/{idZone}/dns_records/{idRecord}',
+            headers=self.headers,
+            json=payload,
+        )
+        data = json.loads(response.text)
+        if data.get('success') == True:
+            print('DNS Update Success')
+        else:
+            print('DNS Update Failed')
+            print(response.text)
 
 if __name__ == "__main__":
-    # Cloudflare API 토큰 
-    # https://dash.cloudflare.com/profile/api-tokens
-    # Zone:DNS:Edit
-    # Global API Key 사용할 수 없음
-    API_TOKEN = ""
-
-    # 도메인 이름
-    DOMAIN = "example.com"
-
-    # 서브 도메인 이름 (없으면 빈 문자열)
-    RECORD_NAME = ""
-
-    # Cloudflare Proxy 사용 여부
-    PROXY = True
-
-    # Cloudflare 객체 생성
-    cf = cloudflare(API_TOKEN, DOMAIN, RECORD_NAME, PROXY)
-    cf.update_dns_record()
+    with open('./cloudflareUpdaterInp.json', 'r') as f:
+        inp = json.load(f)
+    cloudflare_ddns(inp["cloudflare_domain"], inp["cloudflare_api_token"])
