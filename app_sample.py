@@ -2,7 +2,7 @@ import requests
 import json
 
 class cloudflare_ddns():
-    def __init__(self, domain: str, token: str):
+    def __init__(self, domain: str, token: str, proxy: bool):
         self.cloudflare_api = 'https://api.cloudflare.com/client/v4/zones'
         self.headers = {
         'Authorization': f'Bearer {token}',
@@ -16,7 +16,7 @@ class cloudflare_ddns():
         else:
             idZone = self.getIdZone(f'{splitDomain[1]}.{splitDomain[2]}')
         idRecord = self.getIdRecord(idZone, domain)
-        self.update(domain, idZone, idRecord, ipAddr)
+        self.update(domain, idZone, idRecord, ipAddr, proxy)
 
     def getIP(self) -> str:
         res = requests.get("https://myip.wtf/text").text
@@ -42,12 +42,14 @@ class cloudflare_ddns():
         else:
             return None
 
-    def update(self, domain, idZone, idRecord, ipAddr):
+    def update(self, domain, idZone, idRecord, ipAddr, proxy):
         payload = {
             'type': 'A',
             'content': ipAddr
         }
         payload['name'] = domain
+        if proxy:
+            payload["proxied"] = True
         response = requests.put(
             f'{self.cloudflare_api}/{idZone}/dns_records/{idRecord}',
             headers=self.headers,
@@ -63,4 +65,4 @@ class cloudflare_ddns():
 if __name__ == "__main__":
     with open('./cloudflareUpdaterInp.json', 'r') as f:
         inp = json.load(f)
-    cloudflare_ddns(inp["cloudflare_domain"], inp["cloudflare_api_token"])
+    cloudflare_ddns(inp["cloudflare_domain"], inp["cloudflare_api_token"], inp["cloudflare_proxy"])

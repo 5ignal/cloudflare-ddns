@@ -1,4 +1,5 @@
 {
-    "cloudflare_domain": "a.b.c",
-    "cloudflare_api_token": "abc"
+    "cloudflare_domain": "example.com",
+    "cloudflare_api_token": "ABCEFGHIJKLMNOPQRSTUVWXYZ",
+    "cloudflare_proxy": "True"
 }
