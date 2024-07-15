@@ -58,11 +58,9 @@ jobs:
           prerelease: false
 
       - name: Upload Release Asset
-        uses: actions/upload-release-asset@v1
+        uses: elgohr/Github-Release-Action@v5
         env:
-          GITHUB_TOKEN: ${{ secrets.TOKEN }}
+          GH_TOKEN: ${{ secrets.TOKEN }}
         with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./build/app/app.exe
-          asset_name: cloudflare-ddns.exe
-          asset_content_type: application/octet-stream
+          title: MyReleaseMessage
+          workdir: ./build/app
