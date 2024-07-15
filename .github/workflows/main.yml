@@ -32,8 +32,8 @@ jobs:
       - name: Archive artifact
         uses: actions/upload-artifact@v4
         with:
-          name: app
-          path: dist/app.exe 
+          name: app-artifact
+          path: dist/app.exe
 
   release:
     needs: build
@@ -43,10 +43,11 @@ jobs:
       - name: Download artifact
         uses: actions/download-artifact@v4
         with:
-          name: app
+          name: app-artifact
           path: .
 
       - name: Create GitHub Release
+        id: create_release
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -62,6 +63,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./app.exe
+          asset_path: ./dist/app.exe
           asset_name: cloudflare-ddns.exe
           asset_content_type: application/octet-stream
