@@ -44,7 +44,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: pyinstaller
-          path: /pyinstaller
+          path: /home/runner/pyinstaller
       
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -61,4 +61,4 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
         with:
-          file: /pyinstaller/cloudflare-ddns.exe
+          file: /home/runner/pyinstaller/cloudflare-ddns.exe
