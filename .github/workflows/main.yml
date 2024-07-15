@@ -52,4 +52,4 @@ jobs:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
         with:
           title: MyReleaseMessage
-          workdir: ./build/app
+          workdir: /home/runner/work/cloudflare-ddns/cloudflare-ddns/build/app
