@@ -2,8 +2,9 @@ name: Build and Release
 
 on:
   push:
-    tags:
+    branches:
       - 'main'
+  workflow_dispatch:
 
 jobs:
   build:
