@@ -33,7 +33,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: app-artifact
-          path: build/cloudflare/cloudflare-ddns.exe
+          path: D:\a\cloudflare-ddns\cloudflare-ddns\build\cloudflare-ddns\cloudflare-ddns.exe
 
   release:
     needs: build
