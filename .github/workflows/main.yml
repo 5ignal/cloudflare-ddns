@@ -62,3 +62,4 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
         with:
           file: /home/runner/pyinstaller/cloudflare-ddns.exe
+          update_latest_release: true
