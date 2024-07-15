@@ -26,14 +26,14 @@ jobs:
 
       - name: Build with PyInstaller
         run: |
-          pyinstaller app.py
+          pyinstaller -n "cloudflare-ddns.exe" app.py 
         shell: cmd
 
       - name: Archive artifact
         uses: actions/upload-artifact@v4
         with:
           name: app-artifact
-          path: build/app/app.exe
+          path: build/app/cloudflare-ddns.exe
 
   release:
     needs: build
@@ -50,9 +50,8 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Upload Release Asset
-        uses: elgohr/Github-Release-Action@v5
-        env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
         with:
-          title: Cloudflare DDNS
-          workdir: /home/runner/work/cloudflare-ddns/cloudflare-ddns/build/app
+          files: /home/runner/work/cloudflare-ddns/cloudflare-ddns/build/app/cloudflare-ddns.exe
+          token: ${{ secrets.GH_TOKEN }}
