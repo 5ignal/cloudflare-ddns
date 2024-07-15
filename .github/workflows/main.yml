@@ -32,7 +32,7 @@ jobs:
       - name: Archive artifact
         uses: actions/upload-artifact@v4
         with:
-          name: app-artifact
+          name: pyinstaller
           path: D:\a\cloudflare-ddns\cloudflare-ddns\build\cloudflare-ddns\cloudflare-ddns.exe
 
   release:
@@ -43,8 +43,8 @@ jobs:
       - name: Download artifact
         uses: actions/download-artifact@v4
         with:
-          name: app-artifact
-          path: .
+          name: pyinstaller
+          path: /pyinstaller
       
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -61,4 +61,4 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
         with:
-          file: /home/runner/work/cloudflare-ddns/cloudflare-ddns/cloudflare-ddns.exe
+          file: /pyinstaller/cloudflare-ddns.exe
