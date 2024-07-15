@@ -49,12 +49,14 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Upload Release Asset
+      - name: Set Release
         uses: elgohr/Github-Release-Action@v5
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
         with:
           title: Cloudflare DDNS
+
+      - name: Upload Release Asset
         uses: xresloader/upload-to-github-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
