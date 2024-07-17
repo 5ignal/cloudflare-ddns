@@ -19,7 +19,7 @@ class cloudflare_ddns():
         self.update(domain, idZone, idRecord, ipAddr, proxy)
 
     def getIP(self) -> str:
-        res = requests.get("https://myip.wtf/text").text
+        res = requests.get("https://myip.ogunaru.workers.dev").text
         res = res.replace('\n', '')
         return res
 
