@@ -7,9 +7,18 @@ Cloudflare DDNS를 지원하지 않는 환경에서 사용하기 위해 만들�
 
 ### config.json
 ```json
-{
-    "cloudflare_domain": "example.com",
-    "cloudflare_api_token": "ABCEFGHIJKLMNOPQRSTUVWXYZ",
-    "cloudflare_proxy": true
-}
+[
+    {
+        "cloudflare_domain": "example.com",
+        "cloudflare_api_token": "ABCEFGHIJKLMNOPQRSTUVWXYZ",
+        "cloudflare_proxy": true
+    },
+    {
+        "cloudflare_domain": "example2.com",
+        "cloudflare_api_token": "ABCEFGHIJKLMNOPQRSTUVWXYZ",
+        "cloudflare_proxy": true,
+        "webhook": "YOUR_DISCORD_WEBHOOK_URL"
+    }
+]
+
 ```
