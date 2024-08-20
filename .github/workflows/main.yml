@@ -1,4 +1,4 @@
-name: Windows Build and Release
+name: windows-build-release
 
 on:
   push:
