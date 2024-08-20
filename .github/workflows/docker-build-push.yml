@@ -2,7 +2,8 @@ name: docker-build-push
 
 on:
   push:
-    branches: [ "discord-webhook" ]
+    tags:
+      - '**'
 
 jobs:
   docker:
