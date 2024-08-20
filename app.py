@@ -24,7 +24,8 @@ class cloudflare_ddns():
             update_result = 0
         else:
             update_result = self.update(domain, idZone, record[0], ipAddr, proxy)
-        self.discord(webhook, update_result, domain, ipAddr, self.getIdAccount(), splitDomain)
+        if webhook:
+            self.discord(webhook, update_result, domain, ipAddr, self.getIdAccount(), splitDomain)
 
     def getIP(self) -> str:
         res = requests.get("https://myip.ogunaru.workers.dev").text
