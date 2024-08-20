@@ -1,5 +1,6 @@
 import requests
 import json
+from discord_webhook import DiscordWebhook, DiscordEmbed
 
 class cloudflare_ddns():
     def __init__(self, domain: str, token: str, proxy: bool, webhook: str):
@@ -20,10 +21,10 @@ class cloudflare_ddns():
         record = self.getRecord(idZone, domain)
         if record[1] == ipAddr:
             print("No Update Needed")
-            return
+            update_result = 0
         else:
-            update = self.update(domain, idZone, record[0], ipAddr, proxy)
-            self.discord(webhook, update, domain, ipAddr, self.getIdAccount(), splitDomain)
+            update_result = self.update(domain, idZone, record[0], ipAddr, proxy)
+        self.discord(webhook, update_result, domain, ipAddr, self.getIdAccount(), splitDomain)
 
     def getIP(self) -> str:
         res = requests.get("https://myip.ogunaru.workers.dev").text
@@ -65,11 +66,11 @@ class cloudflare_ddns():
         data = json.loads(response.text)
         if data.get("success") == True:
             print("DNS Update Success")
-            return True
+            return 1
         else:
             print("DNS Update Failed")
             print(response.text)
-            return False
+            return -1
 
     def getIdAccount(self):
         response = requests.get(
@@ -81,27 +82,36 @@ class cloudflare_ddns():
         else:
             print("Account Not Found")
 
-    def discord(self, webhook, update, domain, ipAddr, idAccount, idZone):
-        color = int("e7883b", 16) if update else int("e01e5a", 16)
-        text = "Success" if update else "Failed"
-
+    def discord(self, webhook_url, update_result, domain, ipAddr, idAccount, idZone):
         author_url = f"https://dash.cloudflare.com/{idAccount}/{idZone}/dns/records"
         icon_url = "https://yt3.googleusercontent.com/lyrJ4UAHQLNGpkLQbL03Xh6GJvAZxA1loSDBRYPWuRbssAoEdCsN0DeybqdKNiJH7KA9NsoH-w=s900-c-k-c0x00ffffff-no-rj"
 
-        payload = dict()
-        payload["content"] = "@here"
-        payload["embeds"] = list()
-        payload_embed = dict()
-        payload_embed["color"] = color
-        payload_embed["author"] = dict([("name", "Cloudflare"), ("url", author_url), ("icon_url", icon_url)])
-        payload_embed["fields"] = [dict([("name", "A Record"), ("value", domain), ("inline", True)]),
-                               dict([("name", "IP Address"), ("value", ipAddr), ("inline", True)])]
-        payload_embed["title"] = f"DDNS Update {text}"
-        payload["embeds"].append(payload_embed)
+        if update_result == 0:
+            title="No Update Needed"
+            description=f"DNS Record for {domain} is already updated to {ipAddr}"
+            color=int("5865f2", 16)
+            content = ""
+        elif update_result == 1:
+            title = "DNS Update Success"
+            description = f"DNS Record for {domain} has been updated to {ipAddr}"
+            color = int("e7883b", 16)
+            content = "@here"
+        else:
+            title="DNS Update Failed" 
+            description=f"DNS Record for {domain} failed to update to {ipAddr}"
+            color=int("e01e5a", 16)
+            content = "@here"
 
-        headers = {"Content-Type": "application/json"}
-        response = requests.post(webhook, data=json.dumps(payload), headers=headers)
-        print(response.status_code, response.text)
+        webhook = DiscordWebhook(url=webhook_url, content=content)
+
+        embed = DiscordEmbed(title=title, description=description, color=color)
+        embed.set_author(name="Cloudflare", url=author_url, icon_url=icon_url)
+        embed.add_embed_field(name="A Record", value=domain, inline=True)
+        embed.add_embed_field(name="IP Address", value=ipAddr, inline=True)
+        embed.set_timestamp()
+
+        webhook.add_embed(embed)
+        webhook.execute()
 
 if __name__ == "__main__":
     with open("./config.json", "r") as f:
