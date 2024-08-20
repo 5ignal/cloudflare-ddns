@@ -1,0 +1,5 @@
+services:
+  app:
+    build: .
+    volumes:
+      - ./config.json:/root/cloudflare-ddns/config.json
