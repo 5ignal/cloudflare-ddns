@@ -1,14 +1,15 @@
-name: Build and Release
+name: Windows Build and Release
 
 on:
   push:
-    branches:
-      - 'main'
-  workflow_dispatch:
+    tags:
+      - '**'
 
 jobs:
-  build:
+  build-release:
     runs-on: windows-latest
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout repository
@@ -17,7 +18,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: 3.11
+          python-version: 3.12
 
       - name: Install dependencies
         run: |
@@ -26,40 +27,11 @@ jobs:
 
       - name: Build with PyInstaller
         run: |
-          pyinstaller -n "cloudflare-ddns" app.py 
-        shell: cmd
+          pyinstaller -n "cloudflare-ddns" app.py
 
-      - name: Archive artifact
-        uses: actions/upload-artifact@v4
+      - name: Publish release
+        uses: ncipollo/release-action@v1
         with:
-          name: pyinstaller
-          path: D:\a\cloudflare-ddns\cloudflare-ddns\build\cloudflare-ddns\cloudflare-ddns.exe
-
-  release:
-    needs: build
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Download artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: pyinstaller
-          path: /home/runner/pyinstaller
-      
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set Release
-        uses: elgohr/Github-Release-Action@v5
-        env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
-        with:
-          title: Cloudflare DDNS
-
-      - name: Upload Release Asset
-        uses: xresloader/upload-to-github-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-        with:
-          file: /home/runner/pyinstaller/cloudflare-ddns.exe
-          update_latest_release: true
+          artifacts: "D:\\a\\cloudflare-ddns\\cloudflare-ddns\\build\\cloudflare-ddns\\cloudflare-ddns.exe"
+          artifactErrorsFailBuild: true
+          generateReleaseNotes: true
