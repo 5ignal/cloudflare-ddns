@@ -115,7 +115,12 @@ class cloudflare_ddns():
         webhook.execute()
 
 if __name__ == "__main__":
-    with open("./config.json", "r") as f:
-        inp = json.load(f)
-    for i in inp:
-        cloudflare_ddns(i["cloudflare_domain"], i["cloudflare_api_token"], i["cloudflare_proxy"], i.get("webhook", None))
+    try:
+        with open("./config.json", "r") as f:
+            inp = json.load(f)
+        for i in inp:
+            cloudflare_ddns(i["cloudflare_domain"], i["cloudflare_api_token"], i["cloudflare_proxy"], i.get("webhook", None))
+        exit(0)
+    except Exception as e:
+        print(f"Error: {e}")
+        exit(1)
