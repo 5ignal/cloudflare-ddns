@@ -85,12 +85,12 @@ class cloudflare_ddns():
 
     def discord(self, webhook_url, update_result, domain, ipAddr, idAccount, idZone):
         author_url = f"https://dash.cloudflare.com/{idAccount}/{idZone}/dns/records"
-        icon_url = "https://yt3.googleusercontent.com/lyrJ4UAHQLNGpkLQbL03Xh6GJvAZxA1loSDBRYPWuRbssAoEdCsN0DeybqdKNiJH7KA9NsoH-w=s900-c-k-c0x00ffffff-no-rj"
+        icon_url = "https://www.cloudflare.com/favicon.ico"
 
         if update_result == 0:
             title="No Update Needed"
             description=f"DNS Record for {domain} is already updated to {ipAddr}"
-            color=int("5865f2", 16)
+            color=int("e7883b", 16)
             content = ""
         elif update_result == 1:
             title = "DNS Update Success"
