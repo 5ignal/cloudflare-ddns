@@ -28,7 +28,7 @@ class cloudflare_ddns():
             self.discord(webhook, update_result, domain, ipAddr, self.getIdAccount(), splitDomain)
 
     def getIP(self) -> str:
-        res = requests.get("https://myip.ogunaru.workers.dev").text
+        res = requests.get("https://myip.wakamo.moe").text
         return res
 
     def getIdZone(self, domain):
